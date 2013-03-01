@@ -37,7 +37,6 @@
 							$ch = curl_init();
 							curl_setopt_array($ch, array(
 							    CURLOPT_FILE => $fp,
-							    CURLOPT_TIMEOUT => 28800, // set this to 8 hours so we dont timeout on big files
 							    CURLOPT_URL => $videoNodes->item(0)->getAttribute('src'),
 							    CURLOPT_SSL_VERIFYPEER => false
 							));
