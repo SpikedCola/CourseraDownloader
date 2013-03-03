@@ -9,6 +9,7 @@
 	 */
 	
 	$page = 'https://class.coursera.org/neuralnets-2012-001/lecture/preview';
+	$outputFolder = __DIR__.'/files/';
 	
 	libxml_use_internal_errors(true);
 	$dom = new DOMDocument();
@@ -33,19 +34,39 @@
 						$xpath2 = new DOMXPath($dom2);
 						$videoNodes = $xpath2->query('//source[@type="video/mp4"]');
 						if ($videoNodes->length > 0) {
-							$fp = fopen(__DIR__.'/files/'.$header.' - E'.($idx+1).' - '.$videoTitle.'.mp4', 'w');
+							if (!is_dir($outputFolder)) {
+								mkdir($outputFolder);
+							}
+							$filename = $header.' - E'.($idx+1).' - '.$videoTitle;
+							$fp = fopen($outputFolder.$filename.'.mp4', 'w');
 							$ch = curl_init();
 							curl_setopt_array($ch, array(
+							    CURLOPT_NOPROGRESS => false,
+							    CURLOPT_PROGRESSFUNCTION => 'progress',
+							    CURLOPT_BUFFERSIZE => 64000,
 							    CURLOPT_FILE => $fp,
 							    CURLOPT_URL => $videoNodes->item(0)->getAttribute('src'),
 							    CURLOPT_SSL_VERIFYPEER => false
 							));
-							echo 'Downloading '.$header.' - E'.($idx+1).' - '.$videoTitle.'...'.PHP_EOL;
+							echo 'Downloading '.$filename.'...'.PHP_EOL;
 							curl_exec($ch);
+							echo PHP_EOL;
 						}
 					}
 				}
 			}
 		}
+	}
+	
+	function progress($download_size, $downloaded) {
+		$percent = 0;
+		if ($download_size > 0) {
+			$percent = ($downloaded/$download_size)*100;
+		}
+		
+		$downloaded /= 1024*1024;
+		$download_size /= 1024*1024;
+		
+		echo "\r".number_format($downloaded, 2).'MB / '.number_format($download_size, 2).'MB ('.number_format($percent, 3).'%)';
 	}
 ?>
